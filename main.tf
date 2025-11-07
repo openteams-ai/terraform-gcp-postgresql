@@ -185,8 +185,8 @@ locals {
     log_temp_files              = "0"
     log_autovacuum_min_duration = "0"
 
-    # Extensions
-    shared_preload_libraries = "pg_stat_statements"
+    # Note: shared_preload_libraries is not supported in Cloud SQL
+    # pg_stat_statements is enabled by default in Cloud SQL PostgreSQL
 
     # Statement tracking
     "pg_stat_statements.track"         = "all"
