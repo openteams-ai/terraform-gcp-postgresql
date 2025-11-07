@@ -224,12 +224,12 @@ resource "google_sql_database" "databases" {
 resource "random_password" "user_passwords" {
   for_each = var.users
 
-  length      = try(each.value.password_length, var.default_password_length)
-  special     = try(each.value.password_special, true)
-  min_upper   = try(each.value.password_min_upper, 2)
-  min_lower   = try(each.value.password_min_lower, 2)
-  min_numeric = try(each.value.password_min_numeric, 2)
-  min_special = try(each.value.password_min_special, 2)
+  length      = coalesce(each.value.password_length, var.default_password_length)
+  special     = coalesce(each.value.password_special, true)
+  min_upper   = coalesce(each.value.password_min_upper, 2)
+  min_lower   = coalesce(each.value.password_min_lower, 2)
+  min_numeric = coalesce(each.value.password_min_numeric, 2)
+  min_special = coalesce(each.value.password_min_special, 2)
 }
 
 # Create users
@@ -321,20 +321,20 @@ resource "google_sql_database_instance" "read_replicas" {
 
   name                 = "${local.instance_name}-${each.key}"
   database_version     = var.postgres_version
-  region               = try(each.value.region, var.region)
+  region               = coalesce(each.value.region, var.region)
   master_instance_name = google_sql_database_instance.postgres.name
   project              = var.project_id
 
   replica_configuration {
-    failover_target = try(each.value.failover_target, false)
+    failover_target = coalesce(each.value.failover_target, false)
   }
 
   settings {
-    tier              = try(each.value.machine_type, local.final_machine_type)
+    tier              = coalesce(each.value.machine_type, local.final_machine_type)
     disk_type         = var.disk_type
-    disk_size         = try(each.value.disk_size, local.final_disk_size)
+    disk_size         = coalesce(each.value.disk_size, local.final_disk_size)
     disk_autoresize   = var.disk_autoresize
-    availability_type = try(each.value.availability_type, "ZONAL")
+    availability_type = coalesce(each.value.availability_type, "ZONAL")
 
     ip_configuration {
       ipv4_enabled    = var.ipv4_enabled
