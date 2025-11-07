@@ -94,16 +94,16 @@ variable "config_presets" {
 variable "machine_type" {
   description = "Machine type for the instance (used when use_preset_config is 'custom')"
   type        = string
-  default     = "db-custom-4-16384"
+  default     = null
 }
 
 variable "sql_edition" {
   description = "Cloud SQL edition: ENTERPRISE or ENTERPRISE_PLUS"
   type        = string
-  default     = "ENTERPRISE"
+  default     = null
 
   validation {
-    condition     = contains(["ENTERPRISE", "ENTERPRISE_PLUS"], var.sql_edition)
+    condition     = var.sql_edition == null || contains(["ENTERPRISE", "ENTERPRISE_PLUS"], var.sql_edition)
     error_message = "SQL edition must be either ENTERPRISE or ENTERPRISE_PLUS."
   }
 }
@@ -117,10 +117,10 @@ variable "disk_type" {
 variable "disk_size_gb" {
   description = "Initial disk size in GB"
   type        = number
-  default     = 100
+  default     = null
 
   validation {
-    condition     = var.disk_size_gb >= 10 && var.disk_size_gb <= 65536
+    condition     = var.disk_size_gb == null || (var.disk_size_gb >= 10 && var.disk_size_gb <= 65536)
     error_message = "Disk size must be between 10 and 65536 GB."
   }
 }

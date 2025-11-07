@@ -23,9 +23,10 @@ locals {
   instance_name = var.use_random_suffix ? "${var.instance_name}-${random_id.instance_suffix.hex}" : var.instance_name
 
   # Determine actual configuration based on presets or custom values
-  final_machine_type = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].machine_type : var.machine_type
-  final_disk_size    = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].disk_size : var.disk_size_gb
-  final_edition      = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].edition : var.sql_edition
+  # When using presets, use preset values; when custom, use provided values (with fallback to balanced preset if null)
+  final_machine_type = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].machine_type : coalesce(var.machine_type, var.config_presets["balanced"].machine_type)
+  final_disk_size    = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].disk_size : coalesce(var.disk_size_gb, var.config_presets["balanced"].disk_size)
+  final_edition      = var.use_preset_config != "custom" ? var.config_presets[var.use_preset_config].edition : coalesce(var.sql_edition, var.config_presets["balanced"].edition)
 
   # Extract memory size from machine type for calculations (in GB)
   memory_gb = tonumber(regex("\\d+", split("-", local.final_machine_type)[3])) / 1024
