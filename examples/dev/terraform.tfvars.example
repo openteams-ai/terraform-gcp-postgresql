@@ -1,0 +1,5 @@
+# Development Environment Configuration
+# Copy this to terraform.tfvars and customize
+
+project_id = "your-gcp-project-id"
+region     = "us-central1"

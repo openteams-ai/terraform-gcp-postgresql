@@ -1,0 +1,12 @@
+# Production Environment Configuration
+# Copy this to terraform.tfvars and customize
+
+project_id = "your-production-gcp-project-id"
+region     = "us-central1"
+
+# Read replica in different region for disaster recovery
+replica_region = "us-east1"
+
+# Network security - restrict access to known networks
+office_cidr = "203.0.113.0/24"  # Replace with your office IP range
+gke_cidr    = "10.0.0.0/16"     # Replace with your GKE cluster CIDR
