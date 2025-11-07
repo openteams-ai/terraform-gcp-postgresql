@@ -4,24 +4,59 @@ Development Example
 Demonstrates basic usage of the Cloud SQL PostgreSQL module
 with minimal configuration for development/testing purposes.
 
+Features demonstrated:
+- Budget preset configuration (2 vCPUs, 7.5GB RAM, 100GB disk)
+- Multiple databases (app\_db, test\_db)
+- Multiple user roles (admin, readwrite, readonly)
+- Open network access for development (NOT for production!)
+- Automated password generation and Secret Manager storage
+- Query insights for performance monitoring
+- PostgreSQL performance auto-tuning
+
 ## Usage
 
 ```hcl
-module "cloudrun_ai_app" {
-  source  = "openteams-ai/cloudrun-ai-app/gcp"
-  version = "~> 1.0"
+module "postgres" {
+  source = "path/to/terraform-gcp-postgresql"
 
-  project_id     = "my-gcp-project"
-  region         = "us-central1"
-  customer_name  = "acme-corp"
-  domain_name    = "acme.example.com"
+  project_id    = "my-gcp-project"
+  instance_name = "my-postgres-db"
+  region        = "us-central1"
 
-  # Application configuration
-  app_image      = "gcr.io/my-project/ai-app:latest"
-  app_env_vars   = {
-    AI_BACKEND_URL = "https://api.openai.com/v1"
-    MCP_SERVER_URL = "https://mcp.example.com"
+  # Use a preset configuration
+  use_preset_config = "balanced"
+
+  # Create databases
+  databases = {
+    app_db = {
+      charset   = "UTF8"
+      collation = "en_US.UTF8"
+    }
   }
+
+  # Create users with different roles
+  users = {
+    admin_user = {
+      role = "admin"
+    }
+    app_user = {
+      role = "readwrite"
+    }
+    readonly_user = {
+      role = "readonly"
+    }
+  }
+
+  # Network configuration
+  authorized_networks = [
+    {
+      name = "office"
+      cidr = "203.0.113.0/24"
+    }
+  ]
+
+  # Enable automatic password storage
+  store_passwords_in_secret_manager = true
 }
 ```
 

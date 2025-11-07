@@ -1,24 +1,7 @@
-# Terraform Module Template
+# Cloud SQL PostgreSQL Module
 
-A comprehensive template repository for creating Terraform/OpenTofu modules with best practices, automated testing, and CI/CD workflows.
-
-## Features
-
-- 🏗️ **OpenTofu/Terraform Support**: Compatible with both OpenTofu and Terraform
-- ✅ **Automated Testing**: Terratest integration with Go-based tests
-- 📚 **Auto-Documentation**: terraform-docs integration with pre-commit hooks
-- 🔍 **Code Quality**: Pre-commit hooks with formatting, validation, and linting
-- 🚀 **CI/CD Pipeline**: GitHub Actions for testing and publishing
-- 📁 **Example Configurations**: Dev and prod example implementations
-- 🛡️ **Security Scanning**: Trivy integration for configuration security
-
-## Quick Start
-
-1. **Use this template** by clicking "Use this template" on GitHub
-2. **Clone your new repository**
-3. **Customize** the module files for your specific use case
-4. **Update** the testing configuration and examples
-5. **Configure** GitHub Actions secrets for CI/CD
+A reusable Terraform/OpenTofu module for deploying Google Cloud SQL PostgreSQL instances
+with support for multiple databases and users with different permission levels.
 
 ## Project Structure
 
@@ -66,21 +49,47 @@ with support for multiple databases and users with different permission levels.
 ## Usage
 
 ```hcl
-module "cloudrun_ai_app" {
-  source  = "openteams-ai/cloudrun-ai-app/gcp"
-  version = "~> 1.0"
+module "postgres" {
+  source = "path/to/terraform-gcp-postgresql"
 
-  project_id     = "my-gcp-project"
-  region         = "us-central1"
-  customer_name  = "acme-corp"
-  domain_name    = "acme.example.com"
+  project_id    = "my-gcp-project"
+  instance_name = "my-postgres-db"
+  region        = "us-central1"
 
-  # Application configuration
-  app_image      = "gcr.io/my-project/ai-app:latest"
-  app_env_vars   = {
-    AI_BACKEND_URL = "https://api.openai.com/v1"
-    MCP_SERVER_URL = "https://mcp.example.com"
+  # Use a preset configuration
+  use_preset_config = "balanced"
+
+  # Create databases
+  databases = {
+    app_db = {
+      charset   = "UTF8"
+      collation = "en_US.UTF8"
+    }
   }
+
+  # Create users with different roles
+  users = {
+    admin_user = {
+      role = "admin"
+    }
+    app_user = {
+      role = "readwrite"
+    }
+    readonly_user = {
+      role = "readonly"
+    }
+  }
+
+  # Network configuration
+  authorized_networks = [
+    {
+      name = "office"
+      cidr = "203.0.113.0/24"
+    }
+  ]
+
+  # Enable automatic password storage
+  store_passwords_in_secret_manager = true
 }
 ```
 
@@ -97,9 +106,9 @@ module "cloudrun_ai_app" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | >= 6.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | >= 3.6 |
+| <a name="provider_google"></a> [google](#provider\_google) | 7.10.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -176,7 +185,7 @@ No modules.
 | <a name="input_transaction_log_retention_days"></a> [transaction\_log\_retention\_days](#input\_transaction\_log\_retention\_days) | Number of days to retain transaction logs | `number` | `7` | no |
 | <a name="input_use_preset_config"></a> [use\_preset\_config](#input\_use\_preset\_config) | Use preset configuration (budget, balanced, performance, or custom) | `string` | `"balanced"` | no |
 | <a name="input_use_random_suffix"></a> [use\_random\_suffix](#input\_use\_random\_suffix) | Add random suffix to instance name for uniqueness | `bool` | `true` | no |
-| <a name="input_users"></a> [users](#input\_users) | Map of users to create with their configuration | <pre>map(object({<br/>    role                  = optional(string, "readonly") # admin, readwrite, readonly, custom<br/>    password              = optional(string)             # If not provided, will be generated<br/>    password_length       = optional(number)<br/>    password_special      = optional(bool)<br/>    password_min_upper    = optional(number)<br/>    password_min_lower    = optional(number)<br/>    password_min_numeric  = optional(number)<br/>    password_min_special  = optional(number)<br/>    custom_grants         = optional(map(list(string)))  # For custom role: map of database to list of grants<br/>  }))</pre> | <pre>{<br/>  "app_user": {<br/>    "role": "readwrite"<br/>  }<br/>}</pre> | no |
+| <a name="input_users"></a> [users](#input\_users) | Map of users to create with their configuration | <pre>map(object({<br/>    role                 = optional(string, "readonly") # admin, readwrite, readonly, custom<br/>    password             = optional(string)             # If not provided, will be generated<br/>    password_length      = optional(number)<br/>    password_special     = optional(bool)<br/>    password_min_upper   = optional(number)<br/>    password_min_lower   = optional(number)<br/>    password_min_numeric = optional(number)<br/>    password_min_special = optional(number)<br/>    custom_grants        = optional(map(list(string))) # For custom role: map of database to list of grants<br/>  }))</pre> | <pre>{<br/>  "app_user": {<br/>    "role": "readwrite"<br/>  }<br/>}</pre> | no |
 
 ## Outputs
 
@@ -226,6 +235,7 @@ This README uses terraform-docs to automatically generate and maintain module do
 ## Testing
 
 This template includes comprehensive testing setup using Terratest. The tests validate:
+
 - Infrastructure provisioning
 - Resource configuration
 - Input validation
@@ -253,13 +263,13 @@ cd test && go test -v -run TestDevExample
 
 ## Makefile Commands
 
-| Command       | Description                                      |
-| ------------- | ------------------------------------------------ |
-| `make help`   | Display available make targets with descriptions |
-| `make init`   | Initialize OpenTofu and install pre-commit hooks |
-| `make fmt`    | Format all Terraform files                      |
-| `make validate` | Validate Terraform configuration              |
-| `make lint`   | Run all linting checks                          |
-| `make test`   | Run the full test suite                         |
-| `make docs`   | Generate documentation with terraform-docs      |
-| `make clean`  | Clean up temporary files and directories        |
+| Command         | Description                                      |
+| --------------- | ------------------------------------------------ |
+| `make help`     | Display available make targets with descriptions |
+| `make init`     | Initialize OpenTofu and install pre-commit hooks |
+| `make fmt`      | Format all Terraform files                       |
+| `make validate` | Validate Terraform configuration                 |
+| `make lint`     | Run all linting checks                           |
+| `make test`     | Run the full test suite                          |
+| `make docs`     | Generate documentation with terraform-docs       |
+| `make clean`    | Clean up temporary files and directories         |

@@ -3,6 +3,15 @@
  *
  * Demonstrates basic usage of the Cloud SQL PostgreSQL module
  * with minimal configuration for development/testing purposes.
+ *
+ * Features demonstrated:
+ * - Budget preset configuration (2 vCPUs, 7.5GB RAM, 100GB disk)
+ * - Multiple databases (app_db, test_db)
+ * - Multiple user roles (admin, readwrite, readonly)
+ * - Open network access for development (NOT for production!)
+ * - Automated password generation and Secret Manager storage
+ * - Query insights for performance monitoring
+ * - PostgreSQL performance auto-tuning
  */
 
 terraform {
@@ -22,7 +31,7 @@ provider "google" {
 }
 
 # ==========================================
-# CLOUD SQL POSTGRESQL INSTANCE
+# CLOUD SQL POSTGRESQL INSTANCE - DEV
 # ==========================================
 
 module "postgres_dev" {
@@ -37,32 +46,37 @@ module "postgres_dev" {
   # PostgreSQL version
   postgres_version = "POSTGRES_15"
 
-  # Use budget preset for development
+  # Use budget preset for development (2 vCPUs, 7.5GB RAM, 100GB disk, ENTERPRISE)
   use_preset_config = "budget"
 
-  # Databases
+  # Create multiple databases
   databases = {
     app_db = {
       charset   = "UTF8"
       collation = "en_US.UTF8"
     }
-    test_db = {}
+    test_db = {
+      charset   = "UTF8"
+      collation = "en_US.UTF8"
+    }
   }
 
-  # Users with different access levels
+  # Create users with different access levels
   users = {
     app_admin = {
-      role = "admin"
+      role = "admin" # Full database access
     }
     app_user = {
-      role = "readwrite"
+      role = "readwrite" # Can read and write data
     }
     app_readonly = {
-      role = "readonly"
+      role = "readonly" # Can only read data
     }
   }
 
-  # Network configuration - allow from anywhere for dev (CHANGE FOR PRODUCTION!)
+  # Network configuration
+  # WARNING: Open access (0.0.0.0/0) is for development only!
+  # NEVER use this in production - restrict to specific IPs/ranges
   ipv4_enabled = true
   authorized_networks = [
     {
@@ -71,22 +85,31 @@ module "postgres_dev" {
     }
   ]
 
-  # Development settings
-  availability_type      = "ZONAL"
-  backup_enabled         = true
-  deletion_protection    = false
-  query_insights_enabled = true
+  # Development-appropriate settings
+  availability_type     = "ZONAL" # Single zone (cheaper for dev)
+  backup_enabled        = true    # Enable backups
+  deletion_protection   = false   # Allow easy cleanup for dev
+  backup_retention_days = 7       # Keep 7 days of backups (vs 30 for prod)
 
-  # PostgreSQL performance tuning
+  # Monitoring and performance
+  query_insights_enabled          = true
   auto_generate_performance_flags = true
   max_connections                 = "200"
 
-  # Store passwords in Secret Manager
-  store_passwords_in_secret_manager = true
-  generate_permission_script        = true
+  # Password management
+  store_passwords_in_secret_manager = true # Store passwords in Secret Manager
+  generate_permission_script        = true # Generate SQL script for permissions
+
+  # PostgreSQL extensions (optional)
+  postgresql_extensions = [
+    "pg_stat_statements", # Query performance monitoring
+    "pgcrypto",           # Cryptographic functions
+    "uuid-ossp"           # UUID generation
+  ]
 
   labels = {
     environment = "dev"
     managed_by  = "terraform"
+    team        = "engineering"
   }
 }

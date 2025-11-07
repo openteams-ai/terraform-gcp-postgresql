@@ -81,7 +81,7 @@ ${grant}
 
 \c postgres
 
-SELECT 
+SELECT
     r.rolname as username,
     r.rolsuper as is_superuser,
     r.rolcreaterole as can_create_role,
