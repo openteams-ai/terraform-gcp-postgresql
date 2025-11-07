@@ -32,9 +32,11 @@ variable "postgres_version" {
       "POSTGRES_13",
       "POSTGRES_14",
       "POSTGRES_15",
-      "POSTGRES_16"
+      "POSTGRES_16",
+      "POSTGRES_17",
+      "POSTGRES_18"
     ], var.postgres_version)
-    error_message = "Invalid PostgreSQL version. Must be POSTGRES_12, 13, 14, 15, or 16."
+    error_message = "Invalid PostgreSQL version. Must be POSTGRES_12, 13, 14, 15, 16, 17, or 18."
   }
 }
 

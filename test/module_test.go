@@ -366,6 +366,8 @@ func TestPostgreSQLVersionValidation(t *testing.T) {
 		"POSTGRES_14",
 		"POSTGRES_15",
 		"POSTGRES_16",
+		"POSTGRES_17",
+		"POSTGRES_18",
 	}
 
 	for _, version := range validVersions {
