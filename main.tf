@@ -155,11 +155,13 @@ locals {
     # Connection settings
     max_connections = var.max_connections
 
-    # Memory settings (based on instance size) - Cloud SQL expects integers in KB
-    shared_buffers       = tostring(floor(local.memory_gb * 256 * 1024)) # ~25% of RAM in KB
-    effective_cache_size = tostring(floor(local.memory_gb * 768 * 1024)) # ~75% of RAM in KB
-    maintenance_work_mem = tostring(min(2048 * 1024, floor(local.memory_gb * 64 * 1024))) # In KB
-    work_mem             = tostring(max(4 * 1024, floor(local.memory_gb * 4 * 1024))) # In KB
+    # Memory settings (based on instance size) - Cloud SQL expects integers in 8KB pages
+    # Note: Cloud SQL has instance-specific limits on these values
+    # Using conservative values that work across instance types: ~20% RAM for shared_buffers, ~60% for effective_cache_size
+    shared_buffers       = tostring(floor(local.memory_gb * 200 * 1024 / 8)) # ~20% of RAM in 8KB pages
+    effective_cache_size = tostring(floor(local.memory_gb * 600 * 1024 / 8)) # ~60% of RAM in 8KB pages (capped by Cloud SQL)
+    maintenance_work_mem = tostring(min(262144, floor(local.memory_gb * 64 * 1024 / 8))) # Max 2GB in 8KB pages
+    work_mem             = tostring(max(512, floor(local.memory_gb * 4 * 1024 / 8))) # Min 4MB in 8KB pages
 
     # Checkpoint settings
     checkpoint_completion_target = "0.9"
