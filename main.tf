@@ -270,7 +270,9 @@ resource "google_secret_manager_secret_version" "user_passwords" {
   for_each = var.store_passwords_in_secret_manager ? var.users : {}
 
   secret      = google_secret_manager_secret.user_passwords[each.key].id
-  secret_data = try(each.value.password, random_password.user_passwords[each.key].result)
+  secret_data = coalesce(each.value.password, random_password.user_passwords[each.key].result)
+
+  depends_on = [random_password.user_passwords]
 }
 
 # ==========================================
