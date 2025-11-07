@@ -238,8 +238,10 @@ resource "google_sql_user" "users" {
 
   name     = each.key
   instance = google_sql_database_instance.postgres.name
-  password = try(each.value.password, random_password.user_passwords[each.key].result)
+  password = coalesce(each.value.password, random_password.user_passwords[each.key].result)
   project  = var.project_id
+
+  depends_on = [random_password.user_passwords]
 }
 
 # ==========================================
