@@ -163,9 +163,7 @@ locals {
 
     # Checkpoint settings
     checkpoint_completion_target = "0.9"
-    wal_buffers                  = "16MB"
-    min_wal_size                 = "1GB"
-    max_wal_size                 = "4GB"
+    # Note: wal_buffers, min_wal_size, max_wal_size are not supported in Cloud SQL
 
     # Query optimization
     default_statistics_target = "100"
